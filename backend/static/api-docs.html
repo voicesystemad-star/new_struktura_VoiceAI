@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API Документация | Voicyfy</title>
+  <title>API Документация — VoiceSystem</title>
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
@@ -846,6 +846,8 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/static/css/voicesystem-theme.css">
+  <script src="/static/js/voicesystem-motion.js" defer></script>
 </head>
 <body>
   <!-- Шапка -->
@@ -853,9 +855,9 @@
     <div class="header-left">
       <a href="/" class="logo">
         <div class="logo-icon">
-          <img src="/static/images/IMG_2820.PNG" alt="Voicyfy" onerror="this.parentElement.innerHTML='<i class=\'fas fa-robot\' style=\'color: var(--primary-blue);\'></i>'">
+          <img src="/static/images/IMG_2820.PNG" alt="VoiceSystem" onerror="this.parentElement.innerHTML='<i class=\'fas fa-robot\' style=\'color: var(--primary-blue);\'></i>'">
         </div>
-        <span>Voicyfy</span>
+        <span>VoiceSystem</span>
       </a>
       <span class="header-title">API Документация</span>
     </div>
@@ -1585,7 +1587,7 @@
         </div>
         <h1 class="endpoint-title">Webhook: завершение диалога</h1>
         <p class="endpoint-description">
-          Voicyfy может уведомлять ваш сервер о каждом завершённом диалоге.
+          VoiceSystem может уведомлять ваш сервер о каждом завершённом диалоге.
           По событию <code>conversation.completed</code> на указанный вами URL приходит
           <code>POST</code>-запрос с полным диалогом и метаданными. Событие покрывает
           и веб-чат, и телефонию — источник различается по полю <code>source</code>.
@@ -1810,7 +1812,7 @@ async def voicyfy_webhook(request: Request):
     for turn in data["dialog"]:
         print(f"  {turn['role']}: {turn['text']}")
 
-    # Всегда отвечаем 2xx, чтобы Voicyfy не считал доставку неуспешной
+    # Всегда отвечаем 2xx, чтобы VoiceSystem не считал доставку неуспешной
     return {"ok": True}</pre>
             </div>
           </div>

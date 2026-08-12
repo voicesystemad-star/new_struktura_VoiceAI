@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Панель управления | Voicyfy</title>
+  <title>Панель управления — VoiceSystem</title>
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
@@ -1695,6 +1695,8 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/static/css/voicesystem-theme.css">
+  <script src="/static/js/voicesystem-motion.js" defer></script>
 </head>
 <body>
   <!-- Боковая панель -->
@@ -1702,12 +1704,12 @@
     <div class="sidebar-header">
       <a href="/" class="sidebar-logo">
         <div class="logo-icon">
-          <img src="/static/images/IMG_2820.PNG" alt="Voicyfy Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <img src="/static/images/IMG_2820.PNG" alt="VoiceSystem Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
           <div style="display:none; width: 30px; height: 30px; border-radius: 0.5rem; background: linear-gradient(135deg, #4a86e8, #2563eb); color: white; align-items: center; justify-content: center; font-size: 0.875rem;">
             <i class="fas fa-robot"></i>
           </div>
         </div>
-        <span>Voicyfy</span>
+        <span>VoiceSystem</span>
       </a>
       <button class="mobile-toggle" id="sidebar-close">
         <i class="fas fa-times"></i>
@@ -2162,7 +2164,7 @@
         },
         agent: {
           code: 'agent',
-          name: 'Voicyfy Agent',
+          name: 'VoiceSystem Agent',
           basePrice: 5490,
           maxAssistants: 3,
           description: 'AI-оркестратор автономных звонков',
@@ -3123,7 +3125,7 @@
           if (response.trial_activated) {
             hidePaymentModal();
             ui.hideSubscriptionExpiredModal();
-            ui.showNotification('Тестовый период Voicyfy Agent активирован! Вам доступно 1 500 кредитов на 3 дня.', 'success');
+            ui.showNotification('Тестовый период VoiceSystem Agent активирован! Вам доступно 1 500 кредитов на 3 дня.', 'success');
             await loadSubscriptionInfo();
             return;
           }
