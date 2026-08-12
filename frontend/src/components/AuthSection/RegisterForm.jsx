@@ -37,20 +37,27 @@ function RegisterForm({ onSwitchToLogin }) {
 
       const data = await api.register(userData);
 
-      setNotification({ type: 'success', message: 'Код отправлен! Проверьте email.' });
-
       if (data.message && data.message.includes('exists but not verified')) {
+        setNotification({ type: 'success', message: 'Код отправлен! Проверьте email.' });
         setVerificationMessage('Аккаунт уже существует. Новый код верификации отправлен на email!');
         setShowVerification(true);
         return;
       }
 
       if (data.verification_required && data.verification_sent) {
+        setNotification({ type: 'success', message: 'Код отправлен! Проверьте email.' });
         setShowVerification(true);
         clearReferralData();
       } else if (data.token) {
         localStorage.setItem('auth_token', data.token);
         window.location.href = '/static/dashboard.html';
+      } else {
+        // Аккаунт создан, но письмо с кодом не отправилось (verification_sent: false)
+        setIsLoading(false);
+        setNotification({
+          type: 'error',
+          message: 'Аккаунт создан, но не удалось отправить письмо с кодом. Попробуйте войти позже или запросите код повторно.'
+        });
       }
 
     } catch (error) {

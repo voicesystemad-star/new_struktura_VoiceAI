@@ -6,7 +6,9 @@ Handles email verification codes and SMTP operations.
 ✅ FIXED: Added timeout=30 to prevent connection issues on Render
 """
 
+import asyncio
 import smtplib
+import socket
 import random
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -202,9 +204,9 @@ class EmailService:
             logger.info(f"🔌 Connecting to SMTP: {cls.SMTP_HOST}:{cls.SMTP_PORT} (SSL={cls.SMTP_USE_SSL}, TLS={cls.SMTP_USE_TLS})")
             
             if cls.SMTP_USE_SSL:
-                # ✅ FIXED: Use SSL (port 465) with explicit 30-second timeout
-                logger.info("🔌 Creating SMTP_SSL connection with 30s timeout...")
-                with smtplib.SMTP_SSL(cls.SMTP_HOST, cls.SMTP_PORT, timeout=30) as server:
+                # ✅ FIXED: Use SSL (port 465) with explicit 15-second timeout
+                logger.info("🔌 Creating SMTP_SSL connection with 15s timeout...")
+                with smtplib.SMTP_SSL(cls.SMTP_HOST, cls.SMTP_PORT, timeout=15) as server:
                     logger.info(f"✅ Connected! Authenticating as {cls.SMTP_USERNAME}")
                     server.login(cls.SMTP_USERNAME, cls.SMTP_PASSWORD)
                     logger.info("✅ Authenticated successfully!")
@@ -213,9 +215,9 @@ class EmailService:
                     server.send_message(msg)
                     logger.info("✅ send_message() completed successfully!")
             else:
-                # ✅ FIXED: Use STARTTLS (port 587) with explicit 30-second timeout
-                logger.info("🔌 Creating SMTP connection with 30s timeout...")
-                with smtplib.SMTP(cls.SMTP_HOST, cls.SMTP_PORT, timeout=30) as server:
+                # ✅ FIXED: Use STARTTLS (port 587) with explicit 15-second timeout
+                logger.info("🔌 Creating SMTP connection with 15s timeout...")
+                with smtplib.SMTP(cls.SMTP_HOST, cls.SMTP_PORT, timeout=15) as server:
                     if cls.SMTP_USE_TLS:
                         logger.info("🔐 Starting TLS...")
                         server.starttls()
@@ -257,6 +259,68 @@ class EmailService:
                 detail=f"Email sending failed: {str(e)}"
             )
     
+    @classmethod
+    def diagnose_smtp(cls) -> Dict[str, Any]:
+        """
+        ✅ DEBUG: Пошаговая диагностика SMTP-соединения (DNS → TCP → SMTP login).
+        Секреты не возвращает. Вызывать через asyncio.to_thread.
+        """
+        result: Dict[str, Any] = {
+            "config": {
+                "host": cls.SMTP_HOST,
+                "port": cls.SMTP_PORT,
+                "use_ssl": cls.SMTP_USE_SSL,
+                "use_tls": cls.SMTP_USE_TLS,
+                "from_email": cls.FROM_EMAIL,
+                "username_set": bool(cls.SMTP_USERNAME),
+                "password_set": bool(cls.SMTP_PASSWORD),
+                "password_length": len(cls.SMTP_PASSWORD) if cls.SMTP_PASSWORD else 0,
+            },
+            "steps": {}
+        }
+
+        # Шаг 1: DNS
+        step_start = datetime.now(timezone.utc)
+        try:
+            ip = socket.gethostbyname(cls.SMTP_HOST)
+            result["steps"]["dns"] = {"ok": True, "ip": ip}
+        except Exception as e:
+            result["steps"]["dns"] = {"ok": False, "error": f"{type(e).__name__}: {e}"}
+            return result
+        finally:
+            result["steps"]["dns"]["elapsed_ms"] = int((datetime.now(timezone.utc) - step_start).total_seconds() * 1000)
+
+        # Шаг 2: TCP connect
+        step_start = datetime.now(timezone.utc)
+        try:
+            with socket.create_connection((cls.SMTP_HOST, cls.SMTP_PORT), timeout=10):
+                result["steps"]["tcp_connect"] = {"ok": True}
+        except Exception as e:
+            result["steps"]["tcp_connect"] = {"ok": False, "error": f"{type(e).__name__}: {e}"}
+            return result
+        finally:
+            result["steps"]["tcp_connect"]["elapsed_ms"] = int((datetime.now(timezone.utc) - step_start).total_seconds() * 1000)
+
+        # Шаг 3: SMTP handshake + login
+        step_start = datetime.now(timezone.utc)
+        try:
+            if cls.SMTP_USE_SSL:
+                with smtplib.SMTP_SSL(cls.SMTP_HOST, cls.SMTP_PORT, timeout=15) as server:
+                    server.login(cls.SMTP_USERNAME, cls.SMTP_PASSWORD)
+            else:
+                with smtplib.SMTP(cls.SMTP_HOST, cls.SMTP_PORT, timeout=15) as server:
+                    if cls.SMTP_USE_TLS:
+                        server.starttls()
+                    server.login(cls.SMTP_USERNAME, cls.SMTP_PASSWORD)
+            result["steps"]["smtp_login"] = {"ok": True}
+        except Exception as e:
+            result["steps"]["smtp_login"] = {"ok": False, "error": f"{type(e).__name__}: {e}"}
+        finally:
+            result["steps"]["smtp_login"]["elapsed_ms"] = int((datetime.now(timezone.utc) - step_start).total_seconds() * 1000)
+
+        result["ok"] = all(step.get("ok") for step in result["steps"].values())
+        return result
+
     @classmethod
     async def send_verification_code(
         cls, 
@@ -322,8 +386,10 @@ class EmailService:
             # Create and send email
             html_content = cls._create_verification_email_html(code, user_email)
             subject = f"Код подтверждения Voicyfy: {code}"
-            
-            cls._send_email_smtp(user_email, subject, html_content)
+
+            # ✅ FIXED: smtplib синхронный — уводим в отдельный поток, чтобы не блокировать
+            # event loop воркера (блокировка > gunicorn timeout убивала воркер без ответа клиенту)
+            await asyncio.to_thread(cls._send_email_smtp, user_email, subject, html_content)
             
             return {
                 "success": True,

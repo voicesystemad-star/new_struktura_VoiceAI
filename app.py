@@ -128,6 +128,25 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
+# ✅ DEBUG: API access log — uvicorn access-логи отключены в logging.py,
+# поэтому без этого middleware в логах Render не видно даже факта прихода запроса.
+@app.middleware("http")
+async def api_access_log(request: Request, call_next):
+    if not request.url.path.startswith("/api/"):
+        return await call_next(request)
+
+    start_time = time.monotonic()
+    logger.info(f"➡️ {request.method} {request.url.path}")
+    try:
+        response = await call_next(request)
+    except Exception:
+        elapsed = time.monotonic() - start_time
+        logger.error(f"⬅️ {request.method} {request.url.path} raised after {elapsed:.2f}s", exc_info=True)
+        raise
+    elapsed = time.monotonic() - start_time
+    logger.info(f"⬅️ {request.method} {request.url.path} → {response.status_code} in {elapsed:.2f}s")
+    return response
+
 # Resource monitoring middleware (optional, requires psutil)
 if PSUTIL_AVAILABLE:
     @app.middleware("http")

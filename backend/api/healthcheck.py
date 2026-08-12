@@ -41,6 +41,23 @@ async def healthcheck():
         "environment": "development" if settings.DEBUG else "production"
     }
 
+@router.get("/api/health/smtp", tags=["Health"])
+async def smtp_diagnose():
+    """
+    ✅ DEBUG: Диагностика SMTP — DNS, TCP-соединение и логин по шагам.
+    Показывает, какие EMAIL_* переменные реально подхватились и на каком
+    шаге падает отправка почты. Секреты не раскрывает.
+    После завершения отладки endpoint можно удалить.
+    """
+    import asyncio
+    from backend.services.email_service import EmailService
+
+    logger.info("🩺 SMTP diagnose requested")
+    result = await asyncio.to_thread(EmailService.diagnose_smtp)
+    logger.info(f"🩺 SMTP diagnose result: ok={result.get('ok')}, steps={result.get('steps')}")
+    return result
+
+
 @router.get("/status", tags=["Health"])
 async def status(db = Depends(get_db)):
     """
