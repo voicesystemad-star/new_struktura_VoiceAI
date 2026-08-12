@@ -1425,6 +1425,80 @@ def ensure_task_model_columns():
         logger.error(f"❌ ensure_task_model_columns error: {e}")
 
 
+def ensure_all_model_columns():
+    """
+    Универсальный доводчик схемы: сравнивает колонки ВСЕХ ORM-моделей с БД
+    и добавляет недостающие. Старые alembic-миграции клона создают таблицы
+    без поздних колонок, а create_all существующие таблицы не меняет — из-за
+    этого SELECT падал на tasks.cartesia_assistant_id, assistant_configs.
+    enable_vision, gemini_assistant_configs.model и т.д. (по одной на релиз).
+
+    NOT NULL-колонки добавляются с DEFAULT из модели, если он скалярный;
+    иначе колонка добавляется nullable — цель «работает», а не идеальная
+    схема. FK-констрейнты здесь не создаются (их добавляют специализированные
+    ensure-шаги выше — этот запускается после них и только досоздаёт хвосты).
+    """
+    try:
+        from sqlalchemy import text, inspect
+        from backend.models.base import Base
+
+        inspector = inspect(engine)
+        added, failed = [], []
+
+        for table in Base.metadata.sorted_tables:
+            if not inspector.has_table(table.name):
+                continue  # таблицу целиком создаст create_all
+            existing = {c['name'] for c in inspector.get_columns(table.name)}
+            for col in table.columns:
+                if col.name in existing:
+                    continue
+                try:
+                    col_type = col.type.compile(engine.dialect)
+                except Exception as e:
+                    failed.append(f"{table.name}.{col.name} (type: {e})")
+                    continue
+
+                ddl = f'ALTER TABLE "{table.name}" ADD COLUMN IF NOT EXISTS "{col.name}" {col_type}'
+
+                # Скалярный default из модели → в DDL, чтобы можно было NOT NULL
+                default_sql = None
+                if col.default is not None and getattr(col.default, 'is_scalar', False):
+                    arg = col.default.arg
+                    if isinstance(arg, bool):
+                        default_sql = 'TRUE' if arg else 'FALSE'
+                    elif isinstance(arg, (int, float)):
+                        default_sql = str(arg)
+                    elif isinstance(arg, str):
+                        default_sql = "'" + arg.replace("'", "''") + "'"
+                if default_sql is not None:
+                    ddl += f' DEFAULT {default_sql}'
+                    if not col.nullable:
+                        ddl += ' NOT NULL'
+                # NOT NULL без дефолта не добавляем — на непустой таблице ALTER упадёт
+
+                try:
+                    with engine.connect() as conn:
+                        trans = conn.begin()
+                        try:
+                            conn.execute(text(ddl))
+                            trans.commit()
+                            added.append(f"{table.name}.{col.name}")
+                        except Exception:
+                            trans.rollback()
+                            raise
+                except Exception as e:
+                    failed.append(f"{table.name}.{col.name} ({e})")
+
+        if added:
+            logger.info(f"✅ ensure_all_model_columns: added {len(added)} columns: {added}")
+        else:
+            logger.info("✅ ensure_all_model_columns: schema already in sync with models")
+        if failed:
+            logger.error(f"❌ ensure_all_model_columns: failed for {failed}")
+    except Exception as e:
+        logger.error(f"❌ ensure_all_model_columns error: {e}")
+
+
 def ensure_task_assistant_fk_on_delete():
     """
     Идемпотентно переводит FK `tasks.*_assistant_id` на ON DELETE SET NULL.
@@ -2005,6 +2079,11 @@ async def startup_event():
 
                 # 🆕 Шаг 22: FK-колонки yandex_assistant_id (агент + задачи)
                 ensure_yandex_agent_columns()
+
+                # 🆕 Шаг 23: Универсальный доводчик — все недостающие колонки
+                #    всех моделей (запускается ПОСЛЕ специализированных шагов,
+                #    чтобы не перехватывать их FK-колонки)
+                ensure_all_model_columns()
 
                 migration_completed = True
                 logger.info("✅ All migrations and schema fixes completed")
