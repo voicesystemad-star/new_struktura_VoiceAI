@@ -67,7 +67,16 @@ function RegisterForm({ onSwitchToLogin }) {
         setNotification({ type: 'error', message: 'Email уже зарегистрирован и подтверждён. Войдите в аккаунт.' });
         setTimeout(() => onSwitchToLogin(), 2000);
       } else {
-        setNotification({ type: 'error', message: error.message || 'Ошибка регистрации' });
+        // Переводим типовые ошибки валидации пароля на русский
+        let message = error.message || 'Ошибка регистрации';
+        if (message.includes('at least one digit')) {
+          message = 'Пароль должен содержать хотя бы одну цифру';
+        } else if (message.includes('at least one letter')) {
+          message = 'Пароль должен содержать хотя бы одну букву';
+        } else if (message.includes('at least 8 characters')) {
+          message = 'Пароль должен быть не короче 8 символов';
+        }
+        setNotification({ type: 'error', message });
       }
     }
   };
@@ -119,7 +128,7 @@ function RegisterForm({ onSwitchToLogin }) {
           type="password"
           id="register-password"
           className="fi"
-          placeholder="Минимум 8 символов"
+          placeholder="Минимум 8 символов, буквы и цифры"
           required
           minLength="8"
           value={password}

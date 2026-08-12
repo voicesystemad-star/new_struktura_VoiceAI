@@ -24,7 +24,12 @@ const api = {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || data.message || 'API Error');
+        let message = data.detail || data.message || 'API Error';
+        // 422: показываем конкретную причину, а не общее "Validation error"
+        if (Array.isArray(data.details) && data.details.length && data.details[0].msg) {
+          message = data.details[0].msg.replace(/^Value error,\s*/, '');
+        }
+        throw new Error(message);
       }
 
       return data;
