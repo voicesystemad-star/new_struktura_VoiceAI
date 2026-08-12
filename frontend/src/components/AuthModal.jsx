@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react';
 import LoginForm from './AuthSection/LoginForm';
 import RegisterForm from './AuthSection/RegisterForm';
+import { useT } from '../i18n';
 
 function AuthModal({ isOpen, onClose, activeTab, setActiveTab }) {
+  const { t } = useT();
+
   useEffect(() => {
     const handler = (e) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', handler);
@@ -27,20 +30,20 @@ function AuthModal({ isOpen, onClose, activeTab, setActiveTab }) {
           </svg>
         </button>
         <div className="modal-logo">
-          <img src="/static/images/IMG_2820.PNG" alt="Voicyfy" />
-          <span>Voicyfy</span>
+          <img src="/static/images/IMG_2820.PNG" alt="VoiceSystem" />
+          <span>VoiceSystem</span>
         </div>
         <div className="modal-title">
-          {activeTab === 'login' ? 'Добро пожаловать' : 'Начните бесплатно'}
+          {activeTab === 'login' ? t('auth.welcome') : t('auth.startFree')}
         </div>
         <div className="modal-sub">
-          {activeTab === 'register' ? '3 дня полного доступа без ограничений' : ''}
+          {activeTab === 'register' ? t('auth.trial3days') : ''}
         </div>
         <div className="auth-tabs">
           <button className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`}
-            onClick={() => setActiveTab('login')}>Вход</button>
+            onClick={() => setActiveTab('login')}>{t('auth.tabLogin')}</button>
           <button className={`auth-tab ${activeTab === 'register' ? 'active' : ''}`}
-            onClick={() => setActiveTab('register')}>Регистрация</button>
+            onClick={() => setActiveTab('register')}>{t('auth.tabSignup')}</button>
         </div>
         {activeTab === 'login'
           ? <LoginForm onSwitchToRegister={() => setActiveTab('register')} />

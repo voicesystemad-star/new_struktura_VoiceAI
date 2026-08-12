@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { useEmailVerification } from '../../hooks/useEmailVerification';
 import InlineNotification from '../InlineNotification';
+import { useT } from '../../i18n';
 
 function EmailVerificationSection({ email, message, onVerified }) {
   const [code, setCode] = useState('');
   const codeInputRef = useRef(null);
+  const { t } = useT();
 
   const {
     attempts,
@@ -49,14 +51,14 @@ function EmailVerificationSection({ email, message, onVerified }) {
       <div className={`verification-notice${message ? ' warning' : ''}`}>
         <i className={message ? 'fas fa-info-circle' : 'fas fa-envelope'}></i>
         {message || (
-          <>Код подтверждения отправлен на <strong>{email}</strong></>
+          <>{t('verif.sentTo')} <strong>{email}</strong></>
         )}
       </div>
 
       <InlineNotification notification={notification} />
 
       <div className="code-input-container">
-        <label htmlFor="verification-code">Введите 6-значный код</label>
+        <label htmlFor="verification-code">{t('verif.enterCode')}</label>
         <input
           type="text"
           id="verification-code"
@@ -76,11 +78,11 @@ function EmailVerificationSection({ email, message, onVerified }) {
 
       <div className="verification-info">
         <span className={`attempts-left ${attemptsClass}`}>
-          Осталось попыток: {attempts}
+          {t('verif.attempts')} {attempts}
         </span>
         {isTimerActive && (
           <span className="resend-timer">
-            Повторная отправка через <strong>{secondsLeft}</strong>с
+            {t('verif.resendIn')} <strong>{secondsLeft}</strong>{t('verif.seconds')}
           </span>
         )}
       </div>
@@ -91,7 +93,7 @@ function EmailVerificationSection({ email, message, onVerified }) {
         onClick={handleVerify}
         disabled={isVerifying || codeDisabled}
       >
-        {isVerifying ? 'Проверяем...' : 'Подтвердить email'}
+        {isVerifying ? t('verif.verifying') : t('verif.confirm')}
       </button>
 
       {!isTimerActive && (
@@ -102,9 +104,9 @@ function EmailVerificationSection({ email, message, onVerified }) {
           disabled={isResending}
         >
           {isResending ? (
-            <><div className="spinner"></div> Отправка...</>
+            <><div className="spinner"></div> {t('verif.sending')}</>
           ) : (
-            <><i className="fas fa-redo"></i> Отправить код повторно</>
+            <><i className="fas fa-redo"></i> {t('verif.resend')}</>
           )}
         </button>
       )}

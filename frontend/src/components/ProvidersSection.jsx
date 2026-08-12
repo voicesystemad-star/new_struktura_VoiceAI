@@ -1,74 +1,77 @@
 import React from 'react';
+import { useT } from '../i18n';
 
 const CheckIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <circle cx="8" cy="8" r="8" fill="#eff6ff"/>
+    <circle cx="8" cy="8" r="8" fill="var(--vs-accent-soft)"/>
     <path d="M5 8l2 2 4-4"
-      stroke="#2563eb" strokeWidth="1.6"
+      stroke="var(--vs-accent)" strokeWidth="1.6"
       strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
 function ProvidersSection() {
+  const { t } = useT();
+
   return (
     <section className="section providers-section" id="providers">
       <div className="section-inner">
         <div className="s-head rev">
-          <span className="s-label">Технологии</span>
-          <h2 className="s-title">Четыре движка — <span className="gt">один интерфейс</span></h2>
-          <p className="s-desc">Выбирайте провайдера под задачу или комбинируйте для максимального результата</p>
+          <span className="s-label">{t('prov.label')}</span>
+          <h2 className="s-title">{t('prov.title1')}<span className="gt">{t('prov.title2')}</span></h2>
+          <p className="s-desc">{t('prov.desc')}</p>
         </div>
 
         <div className="prov-grid">
           <div className="prov-card rev">
             <div className="prov-icon pi-g"><i className="fab fa-google"></i></div>
             <h4>Google Gemini Live</h4>
-            <p>Нативная обработка голоса — без промежуточного STT/TTS. Мультимодальный: аудио, видео, текст одновременно.</p>
+            <p>{t('prov.g.desc')}</p>
             <ul className="prov-feats">
-              <li><CheckIcon /> Бидирекционный стриминг</li>
-              <li><CheckIcon /> Нативный аудио без пайплайна</li>
-              <li><CheckIcon /> Поддержка прерываний</li>
-              <li><CheckIcon /> Function calling</li>
-              <li><CheckIcon /> Мультимодальность</li>
+              <li><CheckIcon /> {t('prov.g.f1')}</li>
+              <li><CheckIcon /> {t('prov.g.f2')}</li>
+              <li><CheckIcon /> {t('prov.g.f3')}</li>
+              <li><CheckIcon /> {t('prov.g.f4')}</li>
+              <li><CheckIcon /> {t('prov.g.f5')}</li>
             </ul>
           </div>
 
           <div className="prov-card rev d1">
             <div className="prov-icon pi-o"><i className="fas fa-robot"></i></div>
             <h4>OpenAI Realtime</h4>
-            <p>Голосовой ИИ на базе OpenAI с нативной речью, ультранизкой задержкой и вызовом функций в реальном времени.</p>
+            <p>{t('prov.o.desc')}</p>
             <ul className="prov-feats">
-              <li><CheckIcon /> Нативный голос</li>
-              <li><CheckIcon /> WebSocket стриминг</li>
-              <li><CheckIcon /> Function calling</li>
-              <li><CheckIcon /> VAD (определение речи)</li>
-              <li><CheckIcon /> Сверхнизкая латенция</li>
+              <li><CheckIcon /> {t('prov.o.f1')}</li>
+              <li><CheckIcon /> {t('prov.o.f2')}</li>
+              <li><CheckIcon /> {t('prov.o.f3')}</li>
+              <li><CheckIcon /> {t('prov.o.f4')}</li>
+              <li><CheckIcon /> {t('prov.o.f5')}</li>
             </ul>
           </div>
 
           <div className="prov-card rev d2">
             <div className="prov-icon pi-c"><i className="fas fa-wave-square"></i></div>
             <h4>ChatGPT + Cartesia TTS</h4>
-            <p>Интеллект ChatGPT + самый выразительный голосовой движок Cartesia Sonic с эмоциями и интонациями.</p>
+            <p>{t('prov.c.desc')}</p>
             <ul className="prov-feats">
-              <li><CheckIcon /> Выразительная речь с эмоциями</li>
-              <li><CheckIcon /> Смех, паузы, интонации</li>
-              <li><CheckIcon /> Стриминг в реальном времени</li>
-              <li><CheckIcon /> ChatGPT для интеллекта</li>
-              <li><CheckIcon /> Идеально для обслуживания</li>
+              <li><CheckIcon /> {t('prov.c.f1')}</li>
+              <li><CheckIcon /> {t('prov.c.f2')}</li>
+              <li><CheckIcon /> {t('prov.c.f3')}</li>
+              <li><CheckIcon /> {t('prov.c.f4')}</li>
+              <li><CheckIcon /> {t('prov.c.f5')}</li>
             </ul>
           </div>
 
           <div className="prov-card rev d3">
             <div className="prov-icon pi-y"><i className="fab fa-yandex"></i></div>
             <h4>Яндекс SpeechKit Realtime</h4>
-            <p>Realtime API от Яндекса с лучшим распознаванием и синтезом русской речи. Идеален для телефонии на российском рынке.</p>
+            <p>{t('prov.y.desc')}</p>
             <ul className="prov-feats">
-              <li><CheckIcon /> Лучшее качество русской речи</li>
-              <li><CheckIcon /> Реалтайм распознавание и синтез</li>
-              <li><CheckIcon /> 15+ фирменных голосов</li>
-              <li><CheckIcon /> Function calling</li>
-              <li><CheckIcon /> Оплата в рублях (Yandex Cloud)</li>
+              <li><CheckIcon /> {t('prov.y.f1')}</li>
+              <li><CheckIcon /> {t('prov.y.f2')}</li>
+              <li><CheckIcon /> {t('prov.y.f3')}</li>
+              <li><CheckIcon /> {t('prov.y.f4')}</li>
+              <li><CheckIcon /> {t('prov.y.f5')}</li>
             </ul>
           </div>
         </div>

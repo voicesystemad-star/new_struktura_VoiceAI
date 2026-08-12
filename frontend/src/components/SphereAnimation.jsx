@@ -1,6 +1,9 @@
 import React from 'react';
+import { useT } from '../i18n';
 
 function SphereAnimation() {
+  const { t } = useT();
+
   return (
     <div className="hero-sphere-wrap">
       <div className="sphere-container">
@@ -20,7 +23,7 @@ function SphereAnimation() {
 
       <div className="s-chip c1">
         <span className="chip-dot"></span>
-        +1 234 звонка сегодня
+        {t('sphere.calls')}
       </div>
 
       <div className="s-chip c3">
@@ -29,7 +32,7 @@ function SphereAnimation() {
           strokeLinecap="round" strokeLinejoin="round">
           <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
         </svg>
-        Активен 24/7
+        {t('sphere.active')}
       </div>
     </div>
   );

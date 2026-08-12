@@ -3,6 +3,7 @@ import api from '../../utils/api';
 import { useReferralTracker } from '../../hooks/useReferralTracker';
 import InlineNotification from '../InlineNotification';
 import EmailVerificationSection from './EmailVerificationSection';
+import { useT } from '../../i18n';
 
 function RegisterForm({ onSwitchToLogin }) {
   const [email, setEmail] = useState('');
@@ -13,13 +14,14 @@ function RegisterForm({ onSwitchToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState(null);
+  const { t } = useT();
 
   const { getReferralData, clearReferralData } = useReferralTracker();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setNotification({ type: 'loading', message: 'Отправляем код верификации на email...' });
+    setNotification({ type: 'loading', message: t('auth.sendingCode') });
     setIsLoading(true);
 
     try {
@@ -38,14 +40,14 @@ function RegisterForm({ onSwitchToLogin }) {
       const data = await api.register(userData);
 
       if (data.message && data.message.includes('exists but not verified')) {
-        setNotification({ type: 'success', message: 'Код отправлен! Проверьте email.' });
-        setVerificationMessage('Аккаунт уже существует. Новый код верификации отправлен на email!');
+        setNotification({ type: 'success', message: t('auth.codeSent') });
+        setVerificationMessage(t('auth.accountExists'));
         setShowVerification(true);
         return;
       }
 
       if (data.verification_required && data.verification_sent) {
-        setNotification({ type: 'success', message: 'Код отправлен! Проверьте email.' });
+        setNotification({ type: 'success', message: t('auth.codeSent') });
         setShowVerification(true);
         clearReferralData();
       } else if (data.token) {
@@ -56,7 +58,7 @@ function RegisterForm({ onSwitchToLogin }) {
         setIsLoading(false);
         setNotification({
           type: 'error',
-          message: 'Аккаунт создан, но не удалось отправить письмо с кодом. Попробуйте войти позже или запросите код повторно.'
+          message: t('auth.emailFailed')
         });
       }
 
@@ -64,17 +66,17 @@ function RegisterForm({ onSwitchToLogin }) {
       setIsLoading(false);
 
       if (error.message.includes('already registered')) {
-        setNotification({ type: 'error', message: 'Email уже зарегистрирован и подтверждён. Войдите в аккаунт.' });
+        setNotification({ type: 'error', message: t('auth.alreadyRegistered') });
         setTimeout(() => onSwitchToLogin(), 2000);
       } else {
-        // Переводим типовые ошибки валидации пароля на русский
-        let message = error.message || 'Ошибка регистрации';
+        // Переводим типовые ошибки валидации пароля
+        let message = error.message || t('auth.regError');
         if (message.includes('at least one digit')) {
-          message = 'Пароль должен содержать хотя бы одну цифру';
+          message = t('auth.pwdDigit');
         } else if (message.includes('at least one letter')) {
-          message = 'Пароль должен содержать хотя бы одну букву';
+          message = t('auth.pwdLetter');
         } else if (message.includes('at least 8 characters')) {
-          message = 'Пароль должен быть не короче 8 символов';
+          message = t('auth.pwdLength');
         }
         setNotification({ type: 'error', message });
       }
@@ -98,24 +100,24 @@ function RegisterForm({ onSwitchToLogin }) {
       <InlineNotification notification={notification} />
 
       <div className="fg">
-        <label htmlFor="register-name">Имя</label>
+        <label htmlFor="register-name">{t('auth.name')}</label>
         <input
           type="text"
           id="register-name"
           className="fi"
-          placeholder="Введите ваше имя"
+          placeholder={t('auth.namePh')}
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
         />
       </div>
 
       <div className="fg">
-        <label htmlFor="register-email">Email</label>
+        <label htmlFor="register-email">{t('auth.email')}</label>
         <input
           type="email"
           id="register-email"
           className="fi"
-          placeholder="your@email.com"
+          placeholder={t('auth.emailPh')}
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -123,12 +125,12 @@ function RegisterForm({ onSwitchToLogin }) {
       </div>
 
       <div className="fg">
-        <label htmlFor="register-password">Пароль</label>
+        <label htmlFor="register-password">{t('auth.password')}</label>
         <input
           type="password"
           id="register-password"
           className="fi"
-          placeholder="Минимум 8 символов, буквы и цифры"
+          placeholder={t('auth.passwordHint')}
           required
           minLength="8"
           value={password}
@@ -137,12 +139,12 @@ function RegisterForm({ onSwitchToLogin }) {
       </div>
 
       <div className="fg">
-        <label htmlFor="register-company">Компания <span>(опционально)</span></label>
+        <label htmlFor="register-company">{t('auth.company')} <span>{t('auth.companyOptional')}</span></label>
         <input
           type="text"
           id="register-company"
           className="fi"
-          placeholder="Название компании"
+          placeholder={t('auth.companyPh')}
           value={companyName}
           onChange={(e) => setCompanyName(e.target.value)}
         />
@@ -153,18 +155,18 @@ function RegisterForm({ onSwitchToLogin }) {
         className="btn-submit"
         disabled={isLoading}
       >
-        {isLoading ? 'Регистрируем...' : 'Зарегистрироваться'}
+        {isLoading ? t('auth.registering') : t('auth.register')}
       </button>
 
       <p className="auth-hint">
-        Уже есть аккаунт?{' '}
+        {t('auth.haveAccount')}{' '}
         <a
           onClick={(e) => {
             e.preventDefault();
             onSwitchToLogin();
           }}
         >
-          Войти
+          {t('auth.loginLink')}
         </a>
       </p>
     </form>

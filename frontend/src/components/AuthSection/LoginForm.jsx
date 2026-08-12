@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import api from '../../utils/api';
 import InlineNotification from '../InlineNotification';
+import { useT } from '../../i18n';
 
 function LoginForm({ onSwitchToRegister }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useT();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setNotification({ type: 'loading', message: 'Выполняется вход...' });
+    setNotification({ type: 'loading', message: t('auth.loggingInMsg') });
     setIsLoading(true);
 
     try {
@@ -19,7 +21,7 @@ function LoginForm({ onSwitchToRegister }) {
 
       localStorage.setItem('auth_token', data.token);
 
-      setNotification({ type: 'success', message: 'Успешный вход! Переходим...' });
+      setNotification({ type: 'success', message: t('auth.loginSuccess') });
 
       setTimeout(() => {
         window.location.href = '/static/dashboard.html';
@@ -29,11 +31,11 @@ function LoginForm({ onSwitchToRegister }) {
       setIsLoading(false);
 
       if (error.message.includes('not verified') || error.message.includes('не подтвержден')) {
-        setNotification({ type: 'warning', message: 'Email не подтверждён! Проверьте почту для кода верификации.' });
+        setNotification({ type: 'warning', message: t('auth.emailNotVerified') });
       } else if (error.message.includes('Invalid') || error.message.includes('password')) {
-        setNotification({ type: 'error', message: 'Неверный email или пароль' });
+        setNotification({ type: 'error', message: t('auth.invalidCreds') });
       } else {
-        setNotification({ type: 'error', message: error.message || 'Ошибка входа' });
+        setNotification({ type: 'error', message: error.message || t('auth.loginError') });
       }
     }
   };
@@ -43,12 +45,12 @@ function LoginForm({ onSwitchToRegister }) {
       <InlineNotification notification={notification} />
 
       <div className="fg">
-        <label htmlFor="login-email">Email</label>
+        <label htmlFor="login-email">{t('auth.email')}</label>
         <input
           type="email"
           id="login-email"
           className="fi"
-          placeholder="your@email.com"
+          placeholder={t('auth.emailPh')}
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -56,7 +58,7 @@ function LoginForm({ onSwitchToRegister }) {
       </div>
 
       <div className="fg">
-        <label htmlFor="login-password">Пароль</label>
+        <label htmlFor="login-password">{t('auth.password')}</label>
         <input
           type="password"
           id="login-password"
@@ -73,18 +75,18 @@ function LoginForm({ onSwitchToRegister }) {
         className="btn-submit"
         disabled={isLoading}
       >
-        {isLoading ? 'Входим...' : 'Войти'}
+        {isLoading ? t('auth.loggingIn') : t('auth.loginBtn')}
       </button>
 
       <p className="auth-hint">
-        Нет аккаунта?{' '}
+        {t('auth.noAccount')}{' '}
         <a
           onClick={(e) => {
             e.preventDefault();
             onSwitchToRegister();
           }}
         >
-          Зарегистрироваться
+          {t('auth.signupLink')}
         </a>
       </p>
     </form>

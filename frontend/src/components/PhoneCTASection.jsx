@@ -1,7 +1,9 @@
 import React from 'react';
+import { useT } from '../i18n';
 
 function PhoneCTASection() {
   const bars = Array.from({ length: 20 });
+  const { t } = useT();
 
   return (
     <div className="phone-cta-outer" id="phone-demo">
@@ -12,8 +14,8 @@ function PhoneCTASection() {
           ))}
         </div>
 
-        <h2>Попробуйте прямо сейчас</h2>
-        <p>Позвоните по номеру ниже и поговорите с голосовым ИИ-ассистентом. Ответит мгновенно.</p>
+        <h2>{t('pcta.title')}</h2>
+        <p>{t('pcta.desc')}</p>
 
         <a href="tel:+79311071031" className="phone-num">
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -22,7 +24,7 @@ function PhoneCTASection() {
           +7 931 10-710-31
         </a>
 
-        <p className="phone-hint">Бесплатный тестовый звонок · Работает 24/7</p>
+        <p className="phone-hint">{t('pcta.hint')}</p>
       </div>
     </div>
   );

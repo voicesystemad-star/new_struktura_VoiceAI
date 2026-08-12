@@ -1,8 +1,11 @@
 import React from 'react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import { useT } from '../../i18n';
 
 function AuthSection({ activeTab, setActiveTab }) {
+  const { t } = useT();
+
   const switchToLogin = () => {
     setActiveTab('login');
   };
@@ -14,8 +17,8 @@ function AuthSection({ activeTab, setActiveTab }) {
   return (
     <section className="auth-section" id="auth">
       <div className="auth-header rev">
-        <h2 className="s-title">Начните бесплатно</h2>
-        <p className="s-desc" style={{ margin: '0 auto' }}>3 дня полного доступа ко всем функциям без ограничений</p>
+        <h2 className="s-title">{t('auth.startFree')}</h2>
+        <p className="s-desc" style={{ margin: '0 auto' }}>{t('auth.trial3days')}</p>
       </div>
 
       <div className="auth-box rev d1">
@@ -24,13 +27,13 @@ function AuthSection({ activeTab, setActiveTab }) {
             className={`auth-tab${activeTab === 'login' ? ' active' : ''}`}
             onClick={switchToLogin}
           >
-            Вход
+            {t('auth.tabLogin')}
           </button>
           <button
             className={`auth-tab${activeTab === 'register' ? ' active' : ''}`}
             onClick={switchToRegister}
           >
-            Регистрация
+            {t('auth.tabSignup')}
           </button>
         </div>
 
