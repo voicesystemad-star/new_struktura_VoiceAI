@@ -100,9 +100,18 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # pydantic v2 кладёт в ctx живые объекты исключений (ValueError) — json.dumps
+    # на них падал, и клиент вместо JSON 422 получал страницу 500.
+    details = []
+    for err in exc.errors():
+        e = dict(err)
+        if e.get("ctx"):
+            e["ctx"] = {k: str(v) for k, v in e["ctx"].items()}
+        details.append(e)
+    logger.warning(f"422 Validation error on {request.method} {request.url.path}: {details}")
     return JSONResponse(
         status_code=422,
-        content={"message": "Validation error", "details": exc.errors()}
+        content={"message": "Validation error", "details": details}
     )
 
 @app.exception_handler(Exception)
@@ -179,8 +188,10 @@ if PSUTIL_AVAILABLE:
             
             return response
         except Exception as e:
+            # НЕ перезапускаем запрос: тело уже прочитано, повторный call_next
+            # зависал в ожидании тела на ~10 минут и дублировал выполнение POST.
             logger.error(f"Error in resource monitoring: {e}")
-            return await call_next(request)
+            raise
 else:
     logger.warning("psutil not available - memory monitoring disabled")
 
