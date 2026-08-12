@@ -1767,7 +1767,7 @@
     </nav>
     
     <div class="sidebar-footer">
-      <a href="https://voicyfy.ru" class="btn btn-secondary" style="width: 100%; text-decoration: none; justify-content: center;" id="logout-button">
+      <a href="/" class="btn btn-secondary" style="width: 100%; text-decoration: none; justify-content: center;" id="logout-button">
         <i class="fas fa-sign-out-alt"></i> Выйти
       </a>
     </div>
@@ -1795,7 +1795,7 @@
             <i class="fas fa-user"></i> Профиль
           </a>
           <div class="dropdown-divider"></div>
-          <a href="https://voicyfy.ru" class="dropdown-item" id="dropdown-logout">
+          <a href="/" class="dropdown-item" id="dropdown-logout">
             <i class="fas fa-sign-out-alt"></i> Выйти
           </a>
         </div>
@@ -3035,13 +3035,13 @@
       logoutButton.addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('auth_token');
-        window.location.href = 'https://voicyfy.ru';
+        window.location.href = '/';
       });
 
       dropdownLogout.addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('auth_token');
-        window.location.href = 'https://voicyfy.ru';
+        window.location.href = '/';
       });
 
       notificationClose.addEventListener('click', ui.hideNotification);
@@ -3191,7 +3191,7 @@
       // Кнопка выхода в модалке истекшей подписки
       expiredLogoutBtn.addEventListener('click', function() {
         localStorage.removeItem('auth_token');
-        window.location.href = 'https://voicyfy.ru';
+        window.location.href = '/';
       });
       
       // Закрытие по клавише Escape

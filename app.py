@@ -855,7 +855,16 @@ def check_and_fix_all_missing_columns():
                 'silence_duration_ms': 'INTEGER DEFAULT 300 NULL',
             },
             'assistant_configs': {
-                # Добавьте если нужно
+                # Поздние колонки, которых нет в старых alembic-миграциях
+                # (свежая БД клона: SELECT падал на enable_vision)
+                'google_sheet_id': 'VARCHAR NULL',
+                'greeting_message': 'VARCHAR NULL',
+                'enable_vision': 'BOOLEAN DEFAULT FALSE NOT NULL',
+                'is_public': 'BOOLEAN DEFAULT FALSE NOT NULL',
+                'total_conversations': 'INTEGER DEFAULT 0 NOT NULL',
+                'temperature': 'FLOAT DEFAULT 0.7 NOT NULL',
+                'max_tokens': 'INTEGER DEFAULT 1000 NOT NULL',
+                'functions': 'JSON NULL',
             },
             'tasks': {
                 'caller_id': 'VARCHAR(20) NULL',

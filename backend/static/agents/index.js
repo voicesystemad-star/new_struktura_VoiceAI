@@ -1236,7 +1236,7 @@ function setupEventHandlers() {
     dropdownLogout.addEventListener('click', function(e) {
       e.preventDefault();
       localStorage.removeItem('auth_token');
-      window.location.href = 'https://voicyfy.ru';
+      window.location.href = '/';
     });
   }
   
