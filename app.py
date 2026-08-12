@@ -1348,6 +1348,63 @@ def ensure_agent_fish_voice_columns():
         logger.error(f"❌ ensure_agent_fish_voice_columns error: {e}")
 
 
+def ensure_task_model_columns():
+    """
+    Идемпотентно досоздаёт в tasks колонки, появившиеся позже старых
+    alembic-миграций. Свежая БД (клон) создаёт tasks по старой схеме, а
+    Base.metadata.create_all существующую таблицу не изменяет — планировщик
+    падал на несуществующей tasks.cartesia_assistant_id каждые 30 секунд.
+    FK-колонки cascade/fish/yandex добавляют свои ensure-шаги — здесь только
+    cartesia и агентно-оркестраторные поля.
+    """
+    try:
+        from sqlalchemy import text, inspect
+        inspector = inspect(engine)
+        if not inspector.has_table('tasks'):
+            return
+        cols = {c['name'] for c in inspector.get_columns('tasks')}
+        defs = []
+        if 'cartesia_assistant_id' not in cols and inspector.has_table('cartesia_assistant_configs'):
+            defs.append("cartesia_assistant_id UUID REFERENCES cartesia_assistant_configs(id) ON DELETE SET NULL")
+        if 'agent_contact_id' not in cols and inspector.has_table('agent_contacts'):
+            defs.append("agent_contact_id UUID REFERENCES agent_contacts(id) ON DELETE SET NULL")
+        if 'agent_call_id' not in cols and inspector.has_table('agent_calls'):
+            defs.append("agent_call_id UUID REFERENCES agent_calls(id) ON DELETE SET NULL")
+        if 'is_agent_task' not in cols:
+            defs.append("is_agent_task BOOLEAN DEFAULT FALSE NOT NULL")
+        if 'pre_call_response_id' not in cols:
+            defs.append("pre_call_response_id VARCHAR(255)")
+        if 'post_call_decision' not in cols:
+            defs.append("post_call_decision VARCHAR(50)")
+        if 'retry_count' not in cols:
+            defs.append("retry_count INTEGER DEFAULT 0 NOT NULL")
+        if 'custom_greeting' not in cols:
+            defs.append("custom_greeting TEXT")
+        if 'call_session_id' not in cols:
+            defs.append("call_session_id VARCHAR(255)")
+        if 'call_started_at' not in cols:
+            defs.append("call_started_at TIMESTAMP WITH TIME ZONE")
+        if 'call_completed_at' not in cols:
+            defs.append("call_completed_at TIMESTAMP WITH TIME ZONE")
+        if 'call_result' not in cols:
+            defs.append("call_result TEXT")
+        if not defs:
+            return
+        with engine.connect() as conn:
+            trans = conn.begin()
+            try:
+                for d in defs:
+                    conn.execute(text(f"ALTER TABLE tasks ADD COLUMN IF NOT EXISTS {d}"))
+                trans.commit()
+                added = [d.split()[0] for d in defs]
+                logger.info(f"✅ Added missing tasks columns ({len(defs)}): {added}")
+            except Exception as e:
+                trans.rollback()
+                logger.error(f"❌ Failed to add missing tasks columns: {e}")
+    except Exception as e:
+        logger.error(f"❌ ensure_task_model_columns error: {e}")
+
+
 def ensure_task_assistant_fk_on_delete():
     """
     Идемпотентно переводит FK `tasks.*_assistant_id` на ON DELETE SET NULL.
@@ -1892,6 +1949,10 @@ async def startup_event():
 
                 # 🆕 Шаг 13.2: FK-колонки fish-голоса (agent_configs + tasks)
                 ensure_agent_fish_voice_columns()
+
+                # 🆕 Шаг 13.25: Недостающие колонки tasks из модели Task
+                #    (cartesia_assistant_id + агентно-оркестраторные поля)
+                ensure_task_model_columns()
 
                 # 🆕 Шаг 13.3: FK задач на ассистентов → ON DELETE SET NULL
                 ensure_task_assistant_fk_on_delete()
